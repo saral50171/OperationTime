@@ -1,7 +1,9 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
 #include "file_handler.h"
+#include "cursor_handler.h"
 
 using namespace std;
 
@@ -10,36 +12,40 @@ void FileHandler::writeToFile(time_t sessionTime, time_t printTime, int counter)
     file.open(fileName, ios::in | ios::out | ios::app);
     if (!file)
     {
+        gotoNextLine();
         cout << "failed to open - not exsist, create it now" << endl;
         file.open(fileName, ios::in | ios::out | ios::trunc);
     }
 
-    std::string line;
-    std::string matchPattern = "counter: ";
-    std::string tmp; 
-    int cnt;
+    file << "session start time: " << ctime(&sessionTime);
+    file << "random time: " << ctime(&printTime);
 
-    while (getline(file, line))
-    { 
-        if (line.find(sessionTime) != string::npos)
-        {
-            getline(file, line); 
-            tmp = line.substr(matchPattern.size());
-            cnt = (int)strtol(tmp.c_str(), nullptr, 10) + 1;
-            file << matchPattern + std::to_string(cnt);
-        }
+    if(fileName.find("operation_succeeded")!= std::string::npos || fileName.find("operation_blocked")!= std::string::npos)
+    {
+        file << "counter: " << counter << endl;
     }
-
-    file << "session start time: " << ctime(&sessionTime) << endl;
-    file << "counter: " << counter << endl;
-    file << "random time: " << ctime(&printTime) << endl;
 
     file.close();
 }
 
 void FileHandler::setFileName(std::string name)
 {
-    fileName = "files/" + name + ".log";
+    const char* dir;
+
+    dir = "files/";
+    struct stat sb;
+
+    if (stat(dir, &sb) != 0 || !S_ISDIR(sb.st_mode)) 
+    {
+        gotoNextLine();
+        cout << "there is no files dir. save file on current dir." << endl;
+        fileName = name + ".log";
+    } 
+    else 
+    {
+        fileName = "files/" + name + ".log";
+    }
+
 }
 
 FileHandler::FileHandler()

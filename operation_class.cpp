@@ -1,7 +1,10 @@
 #include <iostream>
 #include "operation_class.h"
+#include "cursor_handler.h"
 
 using namespace std;
+
+std::string operationCls::operationsStr[OPERATIONS_NUM] = {"undefined_operation", "operation_blocked", "waiting_operation", "operation_canceled", "operation_succeeded"};
 
 operationCls::operationCls()
 {
@@ -12,9 +15,9 @@ operationCls::~operationCls()
 {
 }
 
-void operationCls::setName(std::string name)
+void operationCls::setName(int index)
 {
-    name = name;
+    name = operationsStr[index];
     file.setFileName(name);
 }
 
@@ -43,3 +46,14 @@ int operationCls::getCounter()
     return counter;
 }
 
+void operationCls::saveOperationData(time_t sessionTime)
+{
+    gotoNextLine();
+    cout << getName() << endl;
+    setTime(time(NULL));
+    if(getName() == "operation_succeeded" || getName() == "operation_blocked")
+    {
+        setCounter(getCounter()+1);
+    }
+    file.writeToFile(sessionTime, getTime(), getCounter());
+}

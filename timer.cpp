@@ -1,63 +1,11 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <thread>
 #include <iomanip>
 #include <unistd.h>
+#include "timer.h"
 
 using namespace std;
-
-class Timer {
-    bool clear = false;
-    int hours = 0;
-    int minutes = 0;
-    int seconds = 0;
-    int milisec = 0;
-
-    void increseTime();
-    void gotoxy(int x,int y);
-
-public:
-    template<typename Function>
-    void setTimeout(Function function, int delay);
-
-    template<typename Function>
-    void setInterval(Function function, int interval);
-
-    void displayTime();
-
-    void start();
-    void stop();
-
-    Timer();
-    ~Timer();
-};
-
-template<typename Function>
-void Timer::setTimeout(Function function, int delay) {
-    this->clear = false;
-    std::thread t([=]() {
-        if(this->clear) return;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        if(this->clear) return;
-        function();
-    });
-    t.detach();
-}
-
-template<typename Function>
-void Timer::setInterval(Function function, int interval) {
-    this->clear = false;
-    std::thread t([=]() {
-        while(true) {
-            if(this->clear) return;
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            if(this->clear) return;
-            function();
-        }
-    });
-    t.detach();
-}
 
 void Timer::start()
 {
@@ -66,6 +14,7 @@ void Timer::start()
     minutes = 0;
     seconds = 0;
     milisec = 0;
+    system("clear");
 }
 
 void Timer::stop()
@@ -100,16 +49,14 @@ void Timer::increseTime() {
     }
     this->displayTime();
 }
+
 void Timer::displayTime()
 {
-    gotoxy(0,0);
+    printf("\033[%d;%dH", 0, 0);
+
     cout << setfill('0') << setw(2) << this->hours << ":";
     cout << setfill('0') << setw(2) << this->minutes << ":";
     cout << setfill('0') << setw(2) << this->seconds << ":";
     cout << setfill('0') << setw(2) << this->milisec <<  endl;
 }
 
-void Timer::gotoxy(int x,int y)    
-{
-    printf("\033[%d;%dH", y, x);
-}
